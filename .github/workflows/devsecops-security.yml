@@ -98,12 +98,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          config-path: .gitleaks.toml
           args: >
             detect
             --verbose
             --redact
             --source=.
-            --exclude-path=.gitleaks.toml
 
   security-gateway:
     name: Security Gateway

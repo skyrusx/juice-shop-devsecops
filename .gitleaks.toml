@@ -1,0 +1,8 @@
+title = "Juice Shop Gitleaks configuration"
+
+[[allowlists]]
+description = "Ignore OWASP Juice Shop demo data and test fixtures"
+paths = [
+  '''^data/static/.*''',
+  '''^test/.*'''
+]
