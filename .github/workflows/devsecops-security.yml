@@ -103,8 +103,7 @@ jobs:
             --verbose
             --redact
             --source=.
-            --exclude-path=data/static
-            --exclude-path=test
+            --exclude-path=.gitleaks.toml
 
   security-gateway:
     name: Security Gateway
