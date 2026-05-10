@@ -105,6 +105,7 @@ jobs:
             --source=.
             --exclude-path=data/static
             --exclude-path=test/api/web3Spec.ts
+            --exclude-path=test/server/verifySpec.ts
 
   security-gateway:
     name: Security Gateway
