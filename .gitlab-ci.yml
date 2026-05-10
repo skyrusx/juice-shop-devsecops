@@ -1,7 +1,69 @@
-include:
-  - template: Auto-DevOps.gitlab-ci.yml
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+stages:
+  - prepare
+  - security
+  - build
+  - test
 
 variables:
-  SAST_EXCLUDED_PATHS: "frontend/src/assets/private/**"
-  TEST_DISABLED: "true"
-  DAST_DISABLED: "true"
+  NODE_VERSION: "20"
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  NPM_CONFIG_CACHE: "$CI_PROJECT_DIR/.npm"
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+
+default:
+  image: node:${NODE_VERSION}
+  interruptible: true
+  before_script:
+    - node --version
+    - npm --version
+
+cache:
+  key:
+    files:
+      - package-lock.json
+  paths:
+    - .npm/
+
+install_dependencies:
+  stage: prepare
+  script:
+    - npm ci --prefer-offline
+  artifacts:
+    expire_in: 1 hour
+    paths:
+      - node_modules/
+
+npm_audit:
+  stage: security
+  needs:
+    - install_dependencies
+  script:
+    - npm audit --json > npm-audit.json || true
+    - node -e "const r=require('./npm-audit.json'); const v=r.metadata?.vulnerabilities||{}; const high=(v.high||0)+(v.critical||0); console.log(v); if(high>0) process.exit(1)"
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - npm-audit.json
+  allow_failure: true
+
+build_app:
+  stage: build
+  needs:
+    - install_dependencies
+  script:
+    - npm run build
+
+test_app:
+  stage: test
+  needs:
+    - install_dependencies
+  script:
+    - npm test
+  allow_failure: true
